@@ -1,9 +1,9 @@
 ﻿import json
-import requests # Still keeping requests for potential future flexibility, though google-generativeai handles most calls
+import requests
 import streamlit as st
 import time
 import os
-import google.generativeai as genai # Import the Gemini library
+import google.generativeai as genai
 
 # --- Gemini API Configuration ---
 # Define Google Gemini API Key
@@ -27,7 +27,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 # Recommended models for text generation: 'gemini-pro' or 'gemini-1.5-flash'
 # 'gemini-1.5-flash' is generally faster and cheaper for sentiment analysis.
 # 'gemini-pro' is a stable general-purpose model.
-GEMINI_MODEL_NAME = "gemini-2.0-flash" # Or "gemini-pro"
+GEMINI_MODEL_NAME = "gemini-2.0-flash" # Changed to 2.0-flash as per your request
 
 # --- API Rate Limit Delay (in seconds) ---
 API_CALL_DELAY = 0.5 # Half a second delay between consecutive API calls
@@ -73,8 +73,6 @@ def get_sentiment(text_to_analyze: str):
         st.error("Google Gemini API Key is not set. Please provide it to use the service.")
         return {"sentiment": "Error", "confidence": 0.0}
 
-    # Prompt engineering to get sentiment and a confidence score
-    # Emphasize JSON output and no markdown
     prompt_template = """
     Analyze the overall sentiment of the following text and categorize it as 'Positive', 'Negative', or 'Neutral'.
     Also, provide a numerical confidence score for your classification between 0.0 and 1.0 (float).
@@ -93,8 +91,6 @@ def get_sentiment(text_to_analyze: str):
     try:
         model = genai.GenerativeModel(GEMINI_MODEL_NAME)
         
-        # Gemini's chat completion uses a list of dicts for messages
-        # The content of the user message is the prompt.
         messages = [
             {"role": "user", "parts": [prompt]}
         ]
@@ -102,15 +98,13 @@ def get_sentiment(text_to_analyze: str):
         response = model.generate_content(
             messages,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.2, # Lower temperature for more deterministic output
-                max_output_tokens=800 # Renamed from max_tokens for Gemini
+                temperature=0.2,
+                max_output_tokens=800
             )
         )
         
-        # Access the text content from the response
         model_output_content = response.text
         
-        # Extract JSON from markdown if present or if it's just raw JSON
         json_string = _extract_json_from_markdown(model_output_content)
         
         if not json_string:
@@ -122,19 +116,24 @@ def get_sentiment(text_to_analyze: str):
         sentiment = sentiment_data.get('sentiment')
         confidence = sentiment_data.get('confidence')
 
-        # Basic validation for confidence score
         if not (0.0 <= confidence <= 1.0):
             st.warning(f"Gemini returned an out-of-range confidence score for sentiment: {confidence}. Clamping to [0, 1].")
             confidence = max(0.0, min(1.0, confidence))
 
         return {"sentiment": sentiment, "confidence": confidence}
 
+    # --- UPDATED ERROR HANDLING BLOCK ---
+    except genai.types.APIError as e:
+        # This catches errors directly from the Gemini API, which should have a response
+        error_details = e.response.text if hasattr(e.response, 'text') else str(e)
+        st.error(f"Gemini API Error for sentiment analysis: {error_details}")
+        # Re-raise the error for broader debugging if needed, or return a default/error state
+        raise
     except Exception as e:
-        st.error(f"Error communicating with Google Gemini API for sentiment analysis: {e}")
-        # Attempt to provide more context if response object has error details
-        if hasattr(e, 'response') and e.response:
-            st.error(f"Gemini API Error details: {e.response.text}")
-        return {"sentiment": "Error", "confidence": 0.0}
+        # This catches any other unexpected errors during the process
+        st.error(f"An unexpected error occurred during sentiment analysis: {e}")
+        # Re-raise the error for broader debugging if needed
+        raise
     finally:
         time.sleep(API_CALL_DELAY)
 
@@ -146,7 +145,6 @@ def extract_keywords(text: str):
     if not GOOGLE_API_KEY:
         return []
 
-    # Refined prompt to explicitly ask for sentiment-driving keywords
     prompt_template = """
     From the following text, extract up to 5 keywords or short phrases that *specifically drive or indicate its overall sentiment*.
     Focus on words or phrases that directly convey the emotional tone (positive, negative, or neutral).
@@ -175,8 +173,8 @@ def extract_keywords(text: str):
         response = model.generate_content(
             messages,
             generation_config=genai.types.GenerationConfig(
-                temperature=0.2, # Lower temperature for more deterministic output
-                max_output_tokens=100 # Adjust max_output_tokens for keywords
+                temperature=0.2,
+                max_output_tokens=100
             )
         )
 
@@ -191,10 +189,17 @@ def extract_keywords(text: str):
         keywords_data = json.loads(json_string)
         return keywords_data.get('sentiment_keywords', [])
 
+    # --- UPDATED ERROR HANDLING BLOCK ---
+    except genai.types.APIError as e:
+        # This catches errors directly from the Gemini API, which should have a response
+        error_details = e.response.text if hasattr(e.response, 'text') else str(e)
+        st.error(f"Gemini API Error for keyword extraction: {error_details}")
+        # Re-raise the error for broader debugging if needed, or return an empty list
+        raise
     except Exception as e:
-        st.error(f"Error communicating with Google Gemini API for keyword extraction: {e}")
-        if hasattr(e, 'response') and e.response:
-            st.error(f"Gemini API Error details: {e.response.text}")
-        return []
+        # This catches any other unexpected errors during the process
+        st.error(f"An unexpected error occurred during keyword extraction: {e}")
+        # Re-raise the error for broader debugging if needed
+        raise
     finally:
         time.sleep(API_CALL_DELAY)
