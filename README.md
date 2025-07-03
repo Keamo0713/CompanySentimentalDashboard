@@ -1,4 +1,4 @@
-Link to this dashboard: [https://companysentimentaldashboard.onrender.com ]
+Link to the deployed dashboard: [https://companysentimentaldashboard.onrender.com ]
 
 Link to the deployed dashboard that does not work with API: [https://companysentimentaldashboardmock.onrender.com] 
 
