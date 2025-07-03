@@ -27,7 +27,7 @@ genai.configure(api_key=GOOGLE_API_KEY)
 # Recommended models for text generation: 'gemini-pro' or 'gemini-1.5-flash'
 # 'gemini-1.5-flash' is generally faster and cheaper for sentiment analysis.
 # 'gemini-pro' is a stable general-purpose model.
-GEMINI_MODEL_NAME = "gemini-1.5-flash" # Or "gemini-pro"
+GEMINI_MODEL_NAME = "gemini-2.0-flash" # Or "gemini-pro"
 
 # --- API Rate Limit Delay (in seconds) ---
 API_CALL_DELAY = 0.5 # Half a second delay between consecutive API calls
