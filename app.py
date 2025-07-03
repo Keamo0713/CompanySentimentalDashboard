@@ -9,37 +9,8 @@ import numpy as np # For numpy arrays in confusion matrix plotting
 import datetime # For timestamp in history
 from fpdf import FPDF # Import FPDF for PDF generation
 
-# Mock functions for sentiment analysis and keyword extraction
-# In a real scenario, you'd integrate with the actual Gemini API.
-def get_sentiment(text):
-    """
-    Mocks a sentiment analysis API call.
-    In a real application, this would call the Google Gemini API.
-    """
-    text_lower = text.lower()
-    if any(word in text_lower for word in ['happy', 'great', 'fantastic', 'excellent', 'love', 'enjoyed', 'amazing', 'loved']):
-        return {'sentiment': 'Positive', 'confidence': 0.9}
-    elif any(word in text_lower for word in ['bad', 'disappointed', 'terrible', 'broke', 'unhelpful', 'rude', 'nightmare', 'buggy', 'crashes', 'poor', 'incorrect']):
-        return {'sentiment': 'Negative', 'confidence': 0.85}
-    else:
-        return {'sentiment': 'Neutral', 'confidence': 0.7}
-
-def extract_keywords(text):
-    """
-    Mocks a keyword extraction API call.
-    In a real application, this would call the Google Gemini API.
-    """
-    keywords = []
-    text_lower = text.lower()
-    common_keywords = ["fantastic", "product", "happy", "quality", "broke", "disappointed",
-                       "service", "excellent", "enjoyed", "movie", "acting", "unhelpful",
-                       "rude", "average", "book", "software", "buggy", "crashes", "poor", "incorrect", "order", "return process", "nightmare", "features", "price"]
-    
-    for kw in common_keywords:
-        if kw in text_lower:
-            keywords.append(kw)
-    
-    return list(set(keywords)) # Return unique keywords
+# Import the actual sentiment analysis functions from sentiment_analyzer.py
+from sentiment_analyzer import get_sentiment, extract_keywords
 
 # --- PDF Generation Functions ---
 def create_single_text_analysis_pdf(analysis_data):
@@ -498,7 +469,7 @@ Keywords: {single_analysis_data['Keywords']}
                 st.session_state['analysis_history'].insert(0, {
                     "Type": "Single Text Analysis",
                     "Timestamp": current_time,
-                    "Details": {
+                    "Details": { # Ensure 'Details' key is consistently used
                         "Original Text Snippet": text_input[:200] + ("..." if len(text_input) > 200 else ""),
                         "Sentiment": sentiment_result['sentiment'],
                         "Confidence": f"{sentiment_result['confidence']:.2f}",
@@ -565,7 +536,7 @@ with tab2: # Batch File Analysis Tab
                     st.session_state['analysis_history'].insert(0, {
                         "Type": "Batch File Analysis",
                         "Timestamp": current_batch_time,
-                        "Details": {
+                        "Details": { # Ensure 'Details' key is consistently used
                             "File Name": uploaded_file.name,
                             "Total Texts Processed": len(df_results),
                             "Positive Count": int(sentiment_counts_for_history.get('Positive', 0)),
@@ -618,7 +589,7 @@ with tab2: # Batch File Analysis Tab
                 st.session_state['analysis_history'].insert(0, {
                     "Type": "Batch File Analysis",
                     "Timestamp": current_batch_time,
-                    "Details": {
+                    "Details": { # Ensure 'Details' key is consistently used
                         "File Name": uploaded_file.name,
                         "Total Texts Processed": len(df_results),
                         "Positive Count": int(sentiment_counts_for_history.get('Positive', 0)),
@@ -845,7 +816,7 @@ with tab3: # Accuracy Report Tab
             st.session_state['analysis_history'].insert(0, {
                 "Type": "Accuracy Report",
                 "Timestamp": current_time_accuracy,
-                "Details": {
+                "Details": { # Ensure 'Details' key is consistently used
                     "Overall Accuracy": f"{accuracy_score(true_labels, predicted_labels):.2%}", # Calculate accuracy here
                     "Processed Samples": len(true_labels)
                 }
@@ -929,8 +900,10 @@ with tab4: # History Tab
 
     if st.session_state['analysis_history']:
         for i, entry in enumerate(st.session_state['analysis_history']):
+            # Accessing 'Details' safely
+            details = entry.get('Details', {}) # Get 'Details' or an empty dict if not present
             with st.expander(f"**{entry['Type']}** - {entry['Timestamp']}"):
-                for key, value in entry['Details'].items():
+                for key, value in details.items(): # Iterate over the items of the 'Details' dictionary
                     st.markdown(f"**{key}:** {value}")
                 
                 # Option to clear specific history entry
@@ -1018,4 +991,4 @@ st.sidebar.write("mvubum26@gmail.com")
 st.sidebar.write("dlakavusiseko@gmail.com")
 st.sidebar.write("cynthiamotaung015@gmail.com")
 st.sidebar.markdown("---")
-st.sidebar.write("[Visit CAPACITI](https://www.capaciti.org.za)") 
+st.sidebar.write("[Visit CAPACITI](https://www.capaciti.org.za)")
