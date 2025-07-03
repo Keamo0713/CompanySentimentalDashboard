@@ -2,6 +2,8 @@ Link to this dashboard: [https://companysentimentaldashboard.onrender.com ]
 
 Link to the deployed dashboard that does not work with API: [https://companysentimentaldashboardmock.onrender.com] 
 
+Link to the mock dashboards github : [https://github.com/Keamo0713/CompanySentimentalDashboardMock]
+
 A Streamlit-based web application for comprehensive sentiment analysis and keyword extraction from text data, powered by the Google Gemini API. This dashboard allows users to analyze single pieces of text or upload datasets for batch processing, providing insights into sentiment distribution and key drivers.
 
 ## ✨ Features
